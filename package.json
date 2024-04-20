@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
+    "start": "hexo new page --path post/temp \"new blog\"",
+    "serve": "hexo server",
     "build": "hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
-    "server": "hexo server",
-    "start": "hexo new page --path temp \"new blog\""
+    "server": "hexo server"
   },
   "hexo": {
     "version": "7.2.0"
