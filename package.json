@@ -6,10 +6,11 @@
     "build": "hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
-    "server": "hexo server"
+    "server": "hexo server",
+    "start": "hexo new page --path temp \"new blog\""
   },
   "hexo": {
-    "version": ""
+    "version": "7.2.0"
   },
   "dependencies": {
     "hexo": "^7.0.0",
