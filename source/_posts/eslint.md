@@ -1,8 +1,14 @@
+---
+title: 翻新旧项目之eslint
+date: 2024-04-20 10:40:15
+---
+
 背景: 新入职公司, 项目新(一年)旧(好几年)混杂, 好的是已经有了公共组件库,基本上是将element ui的组件包了一层, 并且属于新代码, 坏的是基础设施基本没有(属于能跑就行的那种)
 
 技术栈: vue@2.7 + element ui@2.15 + webpack@3.6
 
 已发现的问题(重要性高到低):
+
 1. 组件库UI样式不统一或者有问题
 2. 部分组件封装逻辑有问题, 并且还有错误代码
 3. 没有安装eslint, 隐藏了很多问题代码以及风格不统一
@@ -19,8 +25,9 @@
 * 2,3,5,6其实都是代码质量的问题, 根本原因是缺乏规范以及有效的审查机制, 再深一点则是之前的开发人员水平高低不一
 * 随着项目的开发, 代码会越来越臃肿, 如果不及时处理一些问题, 可能会给未来版本上线埋雷
 
-综上所述, 决定还是从收益最大, 对业务影响最小的代码风格进行入手, 
+综上所述, 决定还是从收益最大, 对业务影响最小的代码风格进行入手,
 
+> ui样式问题已经被列为前端组的目标
 
 解决方案:
 
@@ -29,6 +36,12 @@
 * husky + lint-staged 对开发提交的代码进行审查
 
 ## 先贴方案, 再说问题
+
+请注意, 我这是基于**旧项目**以及它配套的nodejs进行配置的, 肯定是**不符合**
+
+各个插件**最新**的配置
+
+### 第一步, 先在package.json添加如下配置
 
 ```json
 // package.json
@@ -52,12 +65,17 @@
   }
 ```
 
+然后运行```npm i```
+
+### 添加eslint配置
+
 ```JavaScript
 // .eslintrc.js
 module.exports = {
   root: true,
   env: {
     browser: true,
+    node: true,
   },
   extends: [
     'eslint:recommended',
@@ -92,15 +110,15 @@ module.exports = {
     'static',
   ],
   globals: {
-    require: true,
     $: true,
     process: true,
-    module: true,
     moment: true,
   },
 }
 
 ```
+
+### 添加jsconfig配置
 
 ```json
 // jsconfig.json
@@ -129,6 +147,10 @@ module.exports = {
 }
 ```
 
+### 在.husky文件夹下添加pre-commit文件
+
+在文件中写入如下内容(第一行注释可以删除)
+
 ```shell
 # .husky/pre-commit
 
@@ -148,10 +170,11 @@ cd project && npm run lint-staged
 
 解决方法很简单, 去到插件的开源仓, 查看他的过往版本
 
-图一
+![图1](/img/eslint/1.png)
+
 切换不同tag, 然后看他的package.json里的engines字段
 
-图二
+![图2](/img/eslint/2.png)
 
 对比项目的nodejs, 然后选择合适的版本安装
 
@@ -165,7 +188,7 @@ cd project && npm run lint-staged
 
 这个时候就需要自己去仓库查看以往版本的文档
 
-- 另外更推荐使用谷歌查资料, 国内的几个博客基本都是抄来抄去, 在里面找东西相当于屎里淘金
+* 另外更推荐使用谷歌查资料, 国内的几个博客基本都是抄来抄去, 在里面找东西相当于屎里淘金
 
 ### 问题四 eslint和prettier冲突
 
@@ -173,34 +196,39 @@ cd project && npm run lint-staged
 
 首先呢, 我们要明白一点, 无论是eslint还是prettier, 它们管理的东西都是rules的一个集合
 
-图3
+![图3](/img/eslint/3.png)
 
-图3-1
+![图3-1](/img/eslint/3-1.png)
 
 那么它们为什么会冲突, 很简单, eslint的部分规则和prettier有冲突
 
-比如, eslint会管理代码的引号, prettier也会, 然后它们的默认值不同
+如上图3-1所示, eslint会管理代码的引号, prettier也会, 然后它们的默认值不同
 
-图4
+<center>eslint@9.1.0</center>
 
-图5
+![图4](/img/eslint/4.png)
+
+<center>prettier@3.2.5</center>
+
+![图5](/img/eslint/5.png)
 
 所以如果你什么都没配置的话, eslint就是会和prettier打架
 
 既然有问题, 那么社区自然也是有解决方案的, 但是, 在说方案之前, 还得先理解一个东西, 那就是eslint和prettier的职责范围
 
-* eslint更加偏向于检查代码的语法错误, 目前eslint已经放弃了代码格式化这份工作
+* eslint更加偏向于检查代码的**语法错误**, 目前eslint已经**放弃**了代码**格式化**这份工作
 
-eslint@9.1.0
-图6
+<center>eslint@9.1.0</center>
 
-图7
+![图6](/img/eslint/6.png)
 
-* prettier则是倾向于代码规范的检查, 并且会承担代码格式化的功能
+![图7](/img/eslint/7.png)
 
-prettier@3.2.5
+* prettier则是倾向于**代码规范**的检查, 并且会**承担**代码**格式化**的功能
 
-图8
+<center>eslint@9.1.0</center>
+
+![图8](/img/eslint/8.png)
 
 所以, 以后进行配置rule的时候, **代码风格**相关的rule就写在prettier里面, **语法**相关的则是放到eslint里面
 
@@ -212,8 +240,9 @@ prettier@3.2.5
 
 plugin现在已经包含了config, 所以我直接用了plugin
 
-eslint-plugin-prettier@5.1.3
-图9
+<center>eslint-plugin-prettier@5.1.3</center>
+
+![图9](/img/eslint/9.png)
 
 这玩意说白了就是把eslint格式化相关的规则给禁用了, 然后又把eslint和prettier冲突的规则合并了, 只用prettier的, 所以用了
 
@@ -221,9 +250,8 @@ eslint-plugin-prettier@5.1.3
 
 ### 问题五 vscode怎么配置代码格式化
 
-首先呢, vscode是自带js解析以及格式化的, 如果要用eslint, 那么就需要在vscode安装eslint插件, 这个插件和eslint不同, 它支持代码格式化, 
-
-所以就别再装个prettier了
+首先呢, vscode是自带js解析以及格式化的, 如果要用eslint, 那么就需要在vscode安装eslint插件, 这个插件和npm的eslint不同,
+它支持代码格式化,所以就别再装个prettier了
 
 然后在vscode的配置文件写入一下配置
 
@@ -251,15 +279,17 @@ eslint-plugin-prettier@5.1.3
 
 ### 问题六 git目录在前端项目目录之外
 
+![图11](/img/eslint/11.png)
+
 husky的文档已经提供了解决方法
 
-husky@9.0.11
-图10
+<center>husky@9.0.11</center>
 
+![图10](/img/eslint/10.png)
 
 ### 问题七 lint-staged不生效
 
-这个是配置写的有问题
+有几个可能, 一是配置写的有问题
 
 ```json
   "lint-staged": {
@@ -269,12 +299,29 @@ husky@9.0.11
   },
 ```
 
+二是git版本可能有问题
+
+使用命令查看git版本
+
+```shell
+git --version 
+```
+
+然后使用命令升级到最新版本
+
+```shell
+git update
+```
+
+三是husky的命令没有运行, 这个可能是.husky目录下缺少这个文件夹
+
+![图12](/img/eslint/12.png)
+
 ### 问题八 vscode没有完全开启js功能
 
 例如 ctrl点击到定义处, 路径补全
 
-这个需要在项目里配置jsconfig.json
-
+这个需要在项目里配置[Link](#jsconfig配置)
 
 ### 想法一
 
@@ -297,7 +344,7 @@ husky@9.0.11
 
 ### 想法三
 
-代码审查并不只是eslint检查, esilnt属于最基础的部分, 
+代码审查并不只是eslint检查, esilnt属于最基础的部分,
 
 还应该根据不同要求在不同方面进行体现
 如:
