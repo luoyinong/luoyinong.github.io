@@ -323,6 +323,94 @@ git update
 
 这个需要在项目里配置[Link](#jsconfig配置)
 
+### 问题九 同一个git目录下有多个前端项目需要管理
+
+这样的话husky的目录就不能放在前端项目里了, 因为git的hookpath只能有一个
+所以需要放在两个前端项目的外面
+
+```js
+-- platformWeb
+---- .git
+---- frontendA
+---- frontendB
+---- husky
+------ _
+------ pre-commit
+```
+
+> 放到外面后需要重新执行husky初始化命令
+
+```json
+// package.json
+{
+  "script": {
+    "prepare": "cd .. && husky install .husky"
+  }
+}
+```
+
+这样的话就带来另外一个问题, 可能你只负责frontendA项目, 并不想管frontendB,
+但是现在这样的话, 会导致eslint检查所有项目, 并如果frontendB没有安装以来的话会
+报错, 导致无法提交
+
+这个时候就需要更改pre-commit命令, 只检查修改的项目
+
+```shell
+# pre-commit
+
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+
+changedFiles=$(git diff --cached --name-only --diff-filter=ACM)
+
+rootDir=$(PWD)
+
+# 判断目录是否改动
+
+isFrontendA=false
+isFrontendB=false
+
+for file in $changedFiles
+do
+    if [[ $file == frontendA/* ]]
+    then
+        isFrontendA=true
+    if [[ $file == frontendB/* ]]
+    then
+        isFrontendB=true
+    fi
+done
+
+execTask() {
+    echo "$rootDir/$1"
+    echo "root $1 commit-msg"
+    cd "$rootDir/$1" && npm run lint-staged
+}
+
+if $isFrontendA
+then
+    execTask "frontendA" $1
+    task1=$! # 保存任务 id
+fi
+
+if $isFrontendB
+    execTask "frontendB" $1
+    task2=$!
+fi
+
+if [[ -n $task1 ]]; then
+    wait $task1
+fi
+
+if [[ -n $task2 ]]; then
+    wait $task2
+fi
+```
+
+> 如果项目太多可以考虑用数组
+
+
 ### 想法一
 
 其实一开始是不想在pre-commit进行eslint检查的, 我是想在git push时进行检查
