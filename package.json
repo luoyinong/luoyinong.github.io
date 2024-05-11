@@ -6,6 +6,7 @@
     "start": "hexo new page --path post/temp \"new blog\"",
     "serve": "hexo server",
     "build": "hexo generate",
+    "debug": "node --inspect-brk ./node_modules/hexo/bin/hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
     "server": "hexo server"

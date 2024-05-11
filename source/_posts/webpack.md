@@ -1,10 +1,15 @@
+---
+title: 翻新旧项目之webpack
+date: 2024-05-11 22:40:15
+---
+
 ## 前言
 
-技术栈和动机不再说明, 详见 [babel升级篇]()
+技术栈和动机不再说明, 详见 [babel升级篇](/2024/05/11/babel)
 
 ## 思路
 
-由于webpack从3到5是断代升级, 并且官方没有提供升级工具, 
+由于webpack从3到5是断代升级, 并且官方没有提供升级工具,
 
 所以需要更新webpack配套的loader, plugin, 以及它们的配置
 
@@ -25,7 +30,7 @@
 
 按照关键字loader和webpack把依赖都放到最前面, 方便后面替换
 
-图1
+@图1
 
 然后把文件放到暂存区
 
@@ -34,24 +39,24 @@
 
 vue-loader的版本不要动, 因为它适配的是vue2
 
-图2
+@图2
 
-如果是这种几年没更新的, 那基本可以确定是废弃的, 
+如果是这种几年没更新的, 那基本可以确定是废弃的,
 去官网查一下, 然后再去webpack看下怎么替换file-loader
 
-图3
+@图3
 
 根据官网的文档, 将url-loader替换成webpack5内置的asset module
 
-图4
+@图4
 
 移除url-loader和file-loader的依赖
 
-图5
+@图5
 
 继续写新版本
 
-图6
+@图6
 
 查看官网, 又是一个废弃的 (已经不支持webpack5, sass-loader自己已经支持给每个文件加上额外内容), 所以移除这个依赖
 
@@ -96,7 +101,7 @@ vue-loader的版本不要动, 因为它适配的是vue2
 
 后续重复步骤不再一一说明, 更新完之后
 
-图7
+@图7
 
 将node_modules和package-lock.json删除
 
@@ -108,22 +113,22 @@ vue-loader的版本不要动, 因为它适配的是vue2
 
 vueLoaderConfig
 
-图8
-图9
+@图8
+@图9
 
 然后将css的loader放到下面
 
-图10
+@图10
 
 具体代码上面有, 就不全贴了
 
 移除这几个插件, webpack已经默认启动
 
-图11
+@图11
 
 给webpack补上如下配置
 
-图12
+@图12
 
 mode和stats是新增的, devtool现在会严格要求顺序
 
@@ -131,29 +136,30 @@ mode和stats是新增的, devtool现在会严格要求顺序
 
 直接在webpack.dev.config.js和prod.config.js里面配置mode就行
 
-图13
+@图13
 
 其它配置可以在运行npm run build时根据报错提示信息来更改
 下面是遇到的几个花了点时间解决的问题
 
-###	mini-css-extract-plugin Conflicting order. Following module has been added
+### mini-css-extract-plugin Conflicting order. Following module has been added
 
 组件引入css的顺序不一致, 在prod的配置里加上
 
-图14
+@图14
 
 开发配置不用加
 
 ### crypto
 
-BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules by default
+BREAKING CHANGE: webpack < 5 used to include polyfills for node.js core modules
+by default
 
 webpack3 会给编译后的文件加上nodejs的模块的polyfill
 webpack5 不会这样做 因为这会导致包的体积变大....
 
 网上给的解决方案大多都是使用
 
-图15
+@图15
 
 但是这很不靠谱, 因为crypto-browserify它的子依赖会用其它nodejs的核心模块, 导致出现更多的错误
 
@@ -163,7 +169,7 @@ webpack5 不会这样做 因为这会导致包的体积变大....
 
 之前的打包文件是不会去除console的, 既然这次升级那就给它在prod加上
 
-图16
+@图16
 
 对比的时候记得先把之前的打包文件删除, 我因为没删除导致一直在旧文件里搜到console.log
 
@@ -178,7 +184,7 @@ webpack5 不会这样做 因为这会导致包的体积变大....
 
 可以将element ui组件库, 项目组件库以及其它几个较大的插件分离开来
 
-```js
+```javascript
 splitChunks: {
   chunks: 'async',
   minSize: 20000,
@@ -228,7 +234,7 @@ splitChunks: {
 
 升级完毕, npm run build 无报错
 
-图17
+@图17
 
 结合之前的babel升级, 速度快了10秒左右(原为44秒) , 提示约为 22%
 
@@ -259,19 +265,19 @@ experiments: {
 
 使用cache之前
 
-图18
+@图18
 
 第二次与热更新
 
-图19
+@图19
 
 使用cache之后
 
-图20
+@图20
 
 第二次与热更新
 
-图21
+@图21
 
 可以看到第二次启动快了20秒左右, 速度提升了80%, 对于热更新没有太大影响
 
@@ -287,20 +293,20 @@ experiments: {
 
 > 另外, 如果没有升级nodejs的话, vite是使用不了的, 它只支持新版的node
 
-图22
+@图22
 
-针对第一点我来展开说一下, 
+针对第一点我来展开说一下,
 
 webpack会对所有被引入的文件进行编译, 同时支持cjs和esm的写法, 支持大量的功能配置
-vite是一个比较轻量化的构建工具, 对**底层配置**进行了一定的封装, 由于是利用了现代浏览器支持加载esm的特性, 
+vite是一个比较轻量化的构建工具, 对**底层配置**进行了一定的封装, 由于是利用了现代浏览器支持加载esm的特性,
 所以**不支持cjs**的写法
 
-图23
+@图23
 
 我这的几个项目确实是用到了webpack的一些独特的配置, 而vite不支持更改, 比如说静态资源管理
 
 vite
-图24
+@图24
 
 而我这的项目恰好就这样写了 (并且有些文件是cjs), 如果要改的话, 工作量应该比较大, 并且是破坏性重构, 风险也大, 然而收益却不高
 
@@ -319,6 +325,6 @@ vite
 
 至于找到之后是人工改还是工具改, 没走到那一步, 我很难确定
 
-综上所述, 开发环境切换到vite是非常麻烦的, 且收益较低, 暂时不考虑 
+综上所述, 开发环境切换到vite是非常麻烦的, 且收益较低, 暂时不考虑
 
 > 如果是新开的项目倒是可以考虑完全使用vite, 因为vite也支持vue2
