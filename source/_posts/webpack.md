@@ -1,6 +1,11 @@
 ---
-title: 翻新旧项目之webpack
+title: 翻新旧项目之webpack(待完善)
 date: 2024-05-11 22:40:15
+categories:
+- 翻新旧项目
+tags:
+- 前端
+- webpack
 ---
 
 ## 前言

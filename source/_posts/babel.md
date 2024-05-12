@@ -1,6 +1,11 @@
 ---
 title: 翻新旧项目之babel
 date: 2024-05-12 11:53:10
+categories:
+- 翻新旧项目
+tags:
+- 前端
+- babel
 ---
 
 ## 项目技术栈
