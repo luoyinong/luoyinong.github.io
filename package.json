@@ -6,6 +6,7 @@
     "start": "hexo new page --path post/temp \"new blog\"",
     "serve": "hexo server",
     "build": "hexo generate",
+    "watermark": "node build/index.js",
     "debug": "node --inspect-brk ./node_modules/hexo/bin/hexo generate",
     "clean": "hexo clean",
     "deploy": "hexo deploy",
@@ -26,5 +27,10 @@
     "hexo-server": "^3.0.0",
     "hexo-theme-fluid": "^1.9.7",
     "hexo-theme-landscape": "^1.0.0"
+  },
+  "devDependencies": {
+    "glob": "^10.3.15",
+    "jimp": "^0.22.12",
+    "sharp": "^0.33.4"
   }
 }
