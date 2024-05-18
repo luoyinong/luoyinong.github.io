@@ -1,3 +1,14 @@
+---
+title: 使用webpack打包nodejs插件(待完善)
+date: 2024-05-18 20:48:15
+categories:
+- webpack
+tags:
+- 前端
+- webpack
+- nodejs
+---
+
 # 前言
 
 记录一下怎么使用webpack打包nodejs插件
