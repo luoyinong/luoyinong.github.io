@@ -7,3 +7,5 @@ public/
 .deploy*/
 _multiconfig.yml
 tools
+original_images
+.vscode
