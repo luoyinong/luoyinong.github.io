@@ -1,6 +1,6 @@
 ---
-title: 使用webpack打包nodejs插件(待完善)
-date: 2024-05-18 20:48:15
+title: 使用webpack打包nodejs插件(图片需要补全)
+date: 2024-05-19 15:31:15
 categories:
 - webpack
 tags:
@@ -61,7 +61,7 @@ cli
 
 ## 为什么要打包
 
-这个工具将会被安装到各个项目里, 并不想让对项目无用的依赖被安装, 所以需要在编译阶段将
+这个工具将会被安装到各个项目里, 并不想让对项目**无用**的**依赖**被**安装**, 所以需要在**编译**阶段将
 一些npm插件打包进去
 
 ## 打包工具选择
@@ -74,7 +74,7 @@ rollup, parcel, esbuild, webpack, browserify
 
 rollup更擅长es module的打包, **放弃**
 
-有些人肯定要问, 我为什么不写成es modules的形式, 
+有些人肯定要问, 我为什么不写成es modules的形式,
 
 可是我的目标本来就是要适配nodejs, 那我为什么还要用es module来写呢
 
@@ -107,7 +107,6 @@ rollup更擅长es module的打包, **放弃**
 
 经过比较, 就剩下了esbuild和webpack, 因为插件代码较少, 所以esbuild的优势没了hh, 最终选择了webpack
 
-
 ## 配置webpack
 
 首先根据代码分析依赖
@@ -115,6 +114,7 @@ rollup更擅长es module的打包, **放弃**
 @图4
 
 上图有四类依赖
+
 * A: nodejs提供的api
 * B: 项目本身会安装的依赖(devdependencies)
 如: webpack, webpack-dev-server(因为这些依赖实际上也是用户的项目打包需要的)
@@ -162,7 +162,6 @@ output: {
 ### C类
 
 C类依赖则是需要打包到文件里, 以便用户安装这个插件时无需安装多余的依赖
-
 
 最后总体配置如下
 
@@ -240,7 +239,7 @@ webpack在打包时会将所有依赖都解析一遍, 而这种动态的依赖�
 
 由于是包含了变量, 所以无法使用require.context (它只支持字符串拼接)
 
-那么这个时候我首相想到的是使用nodejs的readfile, 然后使用eval来执行
+那么这个时候我首先想到的是使用nodejs的readfile, 然后使用eval来执行
 
 @图10
 @图11
@@ -292,4 +291,3 @@ const devConfig = requireFunc(path.resolve(rootDir, configFile))
 > 还有一个原因就是
 > 插件作为底层, 它不应该依赖于上层的项目
 > 而是应该依赖倒置, 两者共同依赖于配置文件(可以不放在根目录, 甚至可以放到目录外)
-
