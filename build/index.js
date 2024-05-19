@@ -77,18 +77,17 @@ function getResizeOption(image, logo) {
   const logoPercent = 10;
 
   if (image.width > logo.width * 2) {
-    return [image.width * logoPercent / 100, Jimp.AUTO]
+    return [(image.width * logoPercent) / 100, Jimp.AUTO];
   }
 
   if (image.width > logo.width) {
-    return [image.width * logoPercent * 2 / 100, Jimp.AUTO]
+    return [(image.width * logoPercent * 2) / 100, Jimp.AUTO];
   }
 
-  return [image.width, Jimp.AUTO]
+  return [image.width, Jimp.AUTO];
 }
 
 function getCompositeOptions(image, logo) {
-  
   const logoCopy = logo.clone();
 
   logoCopy.resize(...getResizeOption(image.bitmap, logoCopy.bitmap));
@@ -109,15 +108,46 @@ function getCompositeOptions(image, logo) {
   ];
 }
 
-async function main() {
-  const images = glob.globSync(["build/srcImages/**/*.png"]);
+function getIdentity(imagePath) {
+  return {
+    filename: path.basename(imagePath),
+    parentDir: path.dirname(imagePath).split(path.sep).pop(),
+  };
+}
 
+function getAddedImages() {
+  const srcImages = glob.globSync(["build/srcImages/**/*.png"]);
+  const markedImages = glob.globSync(["source/img/**/*.png"], {
+    ignore: ["dragonGirl.webp", "favicon.png"],
+  });
+
+  const targetImages = markedImages.map((path) => {
+    const identity = getIdentity(path);
+
+    return {
+      path,
+      ...identity,
+    };
+  });
+
+  return srcImages.filter((src) => {
+    const srcIdentity = getIdentity(src);
+
+    return !targetImages.some(
+      (target) =>
+        target.filename == srcIdentity.filename &&
+        target.parentDir == srcIdentity.parentDir
+    );
+  });
+}
+
+async function main() {
+  const images = getAddedImages();
   const logo = await Jimp.read("build/logo.png");
 
   images.forEach(async (imagePath) => {
     try {
-      const filename = path.basename(imagePath);
-      const childDir = path.dirname(imagePath).split(path.sep).pop();
+      const { filename, parentDir } = getIdentity(imagePath);
 
       const buffer = await sharp(imagePath)
         .png({
@@ -132,10 +162,10 @@ async function main() {
       await image.composite(...options);
 
       await image.writeAsync(
-        path.resolve(__dirname, "../source/img", childDir, filename)
+        path.resolve(__dirname, "../source/img", parentDir, filename)
       );
 
-      console.log(`handle image successfully: ${childDir}/${filename}`);
+      console.log(`handle image successfully: ${parentDir}/${filename}`);
     } catch (e) {
       console.error(e);
     }
