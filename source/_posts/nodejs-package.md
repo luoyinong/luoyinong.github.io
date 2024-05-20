@@ -1,5 +1,5 @@
 ---
-title: 使用webpack打包nodejs插件(图片需要补全)
+title: 使用webpack打包nodejs插件
 date: 2024-05-19 15:31:15
 categories:
 - webpack
