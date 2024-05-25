@@ -1,0 +1,92 @@
+:root {
+  --bg-color: #fffbe8;
+  --text-color: #499504ff;
+  /*change color of meta characetrs like `*` in markdown */
+  --md-char-color: #577909;
+  /*change color of meta contents like image text or link address in markdown */
+  --meta-content-color: #0d1171ff;
+  --table-border-color: #ddd6c1;
+
+  /* color of primary buttons */
+  --primary-color: #b58900;
+  --primary-btn-border-color: #cc9a00;
+  --primary-btn-text-color: #fff;
+
+  /*border for sidebar, etc*/
+  --window-border: 1px solid #eee8d5;
+
+  /*background color if list item in file tree or file list*/
+  --active-file-bg-color: #dfca8844;
+  --active-file-text-color: inherit;
+  --active-file-border-color: #cc9a00;
+
+  /*change background of sidebar*/
+  --side-bar-bg-color: #eee8d5;
+  /*background of control items when hover, like menu in sidebar*/
+  --item-hover-bg-color: #dfca8844;
+  --item-hover-text-color: inherit;
+  /*monospace font for codes, fences*/
+  --monospace: "Monaco", "Consolas", monospace;
+
+  --rawblock-edit-panel-bd: #eee8d5;
+
+  --search-select-bg-color: #b58900;
+  --active-search-item-bg-color: #dfca88;
+}
+
+body {
+  #board {
+    background-color: var(--bg-color);
+
+    img {
+      filter: none;
+    }
+
+    .license-box {
+      background-color: rgba(27,31,35,0.05);
+    }
+
+    .image-caption {
+      color: #192d4c;
+    }
+
+    .index-excerpt {
+      color: var(--text-color);
+    }
+
+    .index-btm {
+      color: var(--md-char-color);
+
+      a {
+        color: var(--md-char-color);
+      }
+    }
+
+    .markdown-body > h1,
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4,
+    .markdown-body h5,
+    .markdown-body h6 {
+      color: var(--text-color);
+    }
+
+    div {
+      color: var(--text-color);
+    }
+
+    blockquote {
+      background-color: var(--side-bar-bg-color);
+      position: relative;
+      margin: 1rem 0rem 1.25rem 0rem;
+      padding-left: 0.75rem;
+      font-family: var(--monospace);
+      border-left: 0.25rem solid var(--primary-color);
+      
+
+      p {
+        color: var(--text-color);
+      }
+    }
+  }
+}

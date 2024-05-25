@@ -5,6 +5,7 @@
   "scripts": {
     "start": "hexo new page --path post/temp \"new blog\"",
     "serve": "hexo server",
+    "dev": "hexo server",
     "build": "hexo generate",
     "watermark": "node build/index.js",
     "debug": "node --inspect-brk ./node_modules/hexo/bin/hexo generate",
