@@ -1,3 +1,8 @@
+/**
+ * 将srcImages里的图片压缩并添加随机位置水印
+ * hexo与fluid提供的压缩文件插件已经过期或者不好用
+ */
+
 const path = require("node:path");
 const sharp = require("sharp");
 const Jimp = require("jimp");

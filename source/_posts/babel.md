@@ -8,7 +8,7 @@ tags:
 - babel
 ---
 
-## 项目技术栈
+# 背景
 
 nodejs@14.16.1 + vue@2.7.8 + babel@6.22.1 + webpack@3.6.0
 标准的vue-cli生成的项目模板

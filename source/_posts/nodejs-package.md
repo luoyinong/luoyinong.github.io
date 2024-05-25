@@ -12,6 +12,7 @@ tags:
 # 前言
 
 记录一下怎么使用webpack打包nodejs插件
+<!-- more -->
 
 ## 实操
 
