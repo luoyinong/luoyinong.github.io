@@ -177,11 +177,11 @@ cd project && npm run lint-staged
 
 解决方法很简单, 去到插件的开源仓, 查看他的过往版本
 
-![图1](/img/eslint/1.png)
+@图1
 
 切换不同tag, 然后看他的package.json里的engines字段
 
-![图2](/img/eslint/2.png)
+@图2
 
 对比项目的nodejs, 然后选择合适的版本安装
 
@@ -203,9 +203,9 @@ cd project && npm run lint-staged
 
 首先呢, 我们要明白一点, 无论是eslint还是prettier, 它们管理的东西都是rules的一个集合
 
-![图3](/img/eslint/3.png)
+@图3
 
-![图3-1](/img/eslint/3-1.png)
+@图13
 
 那么它们为什么会冲突, 很简单, eslint的部分规则和prettier有冲突
 
@@ -213,11 +213,11 @@ cd project && npm run lint-staged
 
 <center>eslint@9.1.0</center>
 
-![图4](/img/eslint/4.png)
+@图4
 
 <center>prettier@3.2.5</center>
 
-![图5](/img/eslint/5.png)
+@图5
 
 所以如果你什么都没配置的话, eslint就是会和prettier打架
 
@@ -227,15 +227,15 @@ cd project && npm run lint-staged
 
 <center>eslint@9.1.0</center>
 
-![图6](/img/eslint/6.png)
+@图6
 
-![图7](/img/eslint/7.png)
+@图7
 
 * prettier则是倾向于**代码规范**的检查, 并且会**承担**代码**格式化**的功能
 
 <center>eslint@9.1.0</center>
 
-![图8](/img/eslint/8.png)
+@图8
 
 所以, 以后进行配置rule的时候, **代码风格**相关的rule就写在prettier里面, **语法**相关的则是放到eslint里面
 
@@ -249,7 +249,7 @@ plugin现在已经包含了config, 所以我直接用了plugin
 
 <center>eslint-plugin-prettier@5.1.3</center>
 
-![图9](/img/eslint/9.png)
+@图9
 
 这玩意说白了就是把eslint格式化相关的规则给禁用了, 然后又把eslint和prettier冲突的规则合并了, 只用prettier的, 所以用了
 
@@ -286,13 +286,13 @@ plugin现在已经包含了config, 所以我直接用了plugin
 
 ### 问题六 git目录在前端项目目录之外
 
-![图11](/img/eslint/11.png)
+@图11
 
 husky的文档已经提供了解决方法
 
 <center>husky@9.0.11</center>
 
-![图10](/img/eslint/10.png)
+@图10
 
 ### 问题七 lint-staged不生效
 
@@ -322,7 +322,7 @@ git update
 
 三是husky的命令没有运行, 这个可能是.husky目录下缺少这个文件夹
 
-![图12](/img/eslint/12.png)
+@图12
 
 ### 问题八 vscode没有完全开启js功能
 
