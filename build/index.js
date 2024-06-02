@@ -4,31 +4,37 @@
  */
 
 const path = require("node:path");
+const fs = require("node:fs");
 const sharp = require("sharp");
-const Jimp = require("jimp");
 const glob = require("glob");
 
-function getPosition(image, logo) {
-  const left = 0;
-  const right = image.width - logo.width;
-  const top = 0;
-  const bottom = image.height - logo.height;
-  const yMid = bottom / 2;
-  const xMid = right / 2;
+function getResizeOption(imageMeta, logoMeta) {
+  const logoPercent = 10;
+
+  if (imageMeta.width > logoMeta.width * 2) {
+    return {
+      width: Math.round((imageMeta.width * logoPercent) / 100),
+      height: imageMeta.height,
+      fit: sharp.fit.inside,
+    };
+  }
+
+  if (imageMeta.width > logoMeta.width) {
+    return {
+      width: Math.round((imageMeta.width * logoPercent * 2) / 100),
+      height: imageMeta.height,
+      fit: sharp.fit.inside,
+    };
+  }
 
   return {
-    left,
-    right,
-    top,
-    bottom,
-    yMid,
-    xMid,
+    width: imageMeta.width,
+    height: imageMeta.height,
+    fit: sharp.fit.inside,
   };
 }
 
-function getRandomPos(image, logo) {
-  const position = getPosition(image, logo);
-
+function getRandomPosition() {
   const percentage = {
     bottomRight: 0.6,
     bottomLeft: 0.1,
@@ -39,90 +45,59 @@ function getRandomPos(image, logo) {
   const ran = Math.random();
 
   if (percentage.bottomRight > ran) {
-    return {
-      y: position.bottom,
-      x: position.right,
-    };
+    return sharp.gravity.southeast;
   }
 
   if (percentage.bottomLeft > ran - percentage.bottomRight) {
-    return {
-      y: position.bottom,
-      x: position.left,
-    };
+    return sharp.gravity.southwest;
   }
 
   if (
     percentage.topRight >
     ran - percentage.bottomRight - percentage.bottomLeft
   ) {
-    return {
-      y: position.top,
-      x: position.right,
-    };
+    return sharp.gravity.northeast;
   }
 
   if (
     percentage.topLeft >
     ran - percentage.bottomRight - percentage.bottomLeft - percentage.topRight
   ) {
-    return {
-      y: position.top,
-      x: position.left,
-    };
+    return sharp.gravity.northeast;
   }
 
-  return {
-    x: position.xMid,
-    y: position.yMid,
-  };
+  return sharp.gravity.centre;
 }
 
-function getResizeOption(image, logo) {
-  const logoPercent = 10;
-
-  if (image.width > logo.width * 2) {
-    return [(image.width * logoPercent) / 100, Jimp.AUTO];
-  }
-
-  if (image.width > logo.width) {
-    return [(image.width * logoPercent * 2) / 100, Jimp.AUTO];
-  }
-
-  return [image.width, Jimp.AUTO];
-}
-
-function getCompositeOptions(image, logo) {
+async function getCompositeOptions(image, logo) {
   const logoCopy = logo.clone();
+  const logoMeta = await logoCopy.metadata();
+  const imageMeta = await image.metadata();
 
-  logoCopy.resize(...getResizeOption(image.bitmap, logoCopy.bitmap));
-
-  const { x, y } = getRandomPos(image.bitmap, logoCopy.bitmap);
+  const logoCopyBuffer = await logoCopy
+    .resize(getResizeOption(imageMeta, logoMeta))
+    .toBuffer();
 
   return [
-    logoCopy,
-    x,
-    y,
-    [
-      {
-        mode: Jimp.BLEND_SCREEN,
-        opacitySource: 1,
-        opacityDest: 1,
-      },
-    ],
+    {
+      input: logoCopyBuffer,
+      gravity: getRandomPosition(),
+    },
   ];
 }
 
 function getIdentity(imagePath) {
+  const ext = path.extname(imagePath);
+
   return {
-    filename: path.basename(imagePath),
+    filename: path.basename(imagePath, ext),
     parentDir: path.dirname(imagePath).split(path.sep).pop(),
   };
 }
 
-function getAddedImages() {
+function getAddedImages(ext) {
   const srcImages = glob.globSync(["build/srcImages/**/*.png"]);
-  const markedImages = glob.globSync(["source/img/**/*.png"], {
+  const markedImages = glob.globSync(["source/img/**/*" + ext], {
     ignore: ["dragonGirl.webp", "favicon.png"],
   });
 
@@ -147,30 +122,34 @@ function getAddedImages() {
 }
 
 async function main() {
-  const images = getAddedImages();
-  const logo = await Jimp.read("build/logo.png");
+  const targetExt = ".webp";
+  const images = getAddedImages(targetExt);
+  const logo = await sharp("build/logo.png");
+  logo.metadata();
 
   images.forEach(async (imagePath) => {
     try {
       const { filename, parentDir } = getIdentity(imagePath);
 
-      const buffer = await sharp(imagePath)
-        .png({
-          compressionLevel: 6,
-        })
-        .toBuffer();
+      const image = await sharp(imagePath);
+      const options = await getCompositeOptions(image, logo);
 
-      const image = await Jimp.read(buffer);
+      const handledImage = await image.composite(options);
+      
 
-      const options = getCompositeOptions(image, logo);
-
-      await image.composite(...options);
-
-      await image.writeAsync(
-        path.resolve(__dirname, "../source/img", parentDir, filename)
+      const targePath = path.resolve(
+        __dirname,
+        "../source/img",
+        parentDir,
+        filename + targetExt
       );
 
-      console.log(`handle image successfully: ${parentDir}/${filename}`);
+      fs.mkdirSync(path.dirname(targePath), { recursive: true });
+
+      // 保留文件信息
+      await handledImage.withMetadata().toFile(targePath);
+
+      console.log(`handle image successfully: ${parentDir}/${filename}${targetExt}`);
     } catch (e) {
       console.error(e);
     }
