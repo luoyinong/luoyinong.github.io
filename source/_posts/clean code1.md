@@ -1,3 +1,15 @@
+---
+title: 前端分享之clean code<待定>
+date: 2024-06-09 18:45:15
+categories:
+- 分享
+tags:
+- clean code
+- 分享
+- 代码质量
+---
+
+
 # 前言
 
 之前在[eslint篇]()说过, 提高代码质量最直接的手段是使用eslint, 以及流水线+单元测试检查, 然后就是间接的code review, 然而这些都是治标不治本
