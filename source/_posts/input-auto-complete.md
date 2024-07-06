@@ -1,6 +1,6 @@
 ---
-title: 解决浏览器input自动补全<待定>
-date: 2024-06-29 18:01:15
+title: 解决浏览器input自动补全
+date: 2024-07-06 16:57:15
 categories:
 - 组件设计
 tags:
@@ -11,7 +11,8 @@ tags:
 # 背景
 
 chrome@125.0.6422.142
-项目自己的组件库
+vue@2.7
+element ui@2.15
 
 ## 发现问题
 
@@ -50,7 +51,7 @@ chrome@125.0.6422.142
 
 ## 监听inut.value
 
-既然不能关闭, 那么能不能监听input的value值, 已改变就将placeholder隐藏起来
+既然不能关闭, 那么能不能监听input的value值, 一改变就将placeholder隐藏起来
 
 ```JavaScript
 value: {
