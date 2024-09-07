@@ -96,7 +96,8 @@ function getIdentity(imagePath) {
 }
 
 function getAddedImages(ext) {
-  const srcImages = glob.globSync(["build/srcImages/**/*.png"]);
+  const srcImages = glob.globSync(["build/srcImages/**/*.*(png|jpg)"]);
+  console.log(srcImages)
   const markedImages = glob.globSync(["source/img/**/*" + ext], {
     ignore: ["dragonGirl.webp", "favicon.png"],
   });
