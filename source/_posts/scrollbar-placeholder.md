@@ -2,7 +2,7 @@
 title: 由滚动条占位引出的组件设计
 date: 2024-11-24 08:34:59
 categories:
-- component
+- 组件设计
 tags:
 - compatibility
 - scrollbar
