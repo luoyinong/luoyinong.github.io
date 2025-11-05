@@ -237,6 +237,31 @@ Invoke-Expression "cd `"$workDir`"; npm run dev"
 
 @图3
 
+.local文件
+
+```shell
+
+# DEV
+# VUE_APP_PROXY_URL=123
+
+# TEST
+# VUE_APP_PROXY_URL=123
+
+# SIT
+VUE_APP_PROXY_URL=123
+
+# CUSTOM
+# VUE_APP_PROXY_URL=123
+
+# LOCAL
+# VUE_APP_PROXY_URL=123
+
+# MOCK
+VUE_APP_MOCK_PROXY_URL=456
+```
+
+需要注意的是, 这个local文件的查找是从上至下的, 并且mock和其它环境不是互斥的, 所以需要将mock放到最下面
+
 ### 解决vue重启
 
 首先是为什么要重启, 原因很简单, 环境配置是写在.local文件里, vue-cli启动时会将.local的配置写入process.env, 然后vue.config.js里的proxy拿到配置
@@ -454,3 +479,26 @@ if (!$processes) {
 ctrl+shift+B(1s) => 切换浏览器(1s) = 2s
 
 可以说大大简化了切换地址的效率, 再也不怕焦头烂额的来回切地址了 (有时候还会忘记重启(～￣▽￣)～)
+
+## 后续
+
+在实际使用过程中发现一个问题, 那就是webpack-dev-server的proxy一旦配置了route, 那么它就会覆盖其它的proxy配置, 这就导致了本地的静态资源文件修改不生效
+
+实际上连的是环境上的资源文件
+
+个人认为这是一个bug
+
+但好在还有其它方法解决, devServer也支持proxy是函数, 所以这么写就没问题
+
+```JavaScript
+proxy: [
+  () => ({
+    context: ['/test'],
+    target: process.env.VUE_APP_PROXY_URL, // env.development or 自己的.local
+    changeOrigin: true,
+    secure: false,
+  })
+],
+```
+
+
