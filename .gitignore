@@ -10,3 +10,4 @@ tools
 build/srcImages
 build/logo.png
 .vscode
+.github/prompts
