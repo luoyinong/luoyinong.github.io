@@ -1,0 +1,333 @@
+---
+title: 代码重构之工具函数
+date: 2026-02-21 17:45:15
+categories:
+- 代码重构
+tags:
+- 重构
+- 工具函数
+- 代码质量
+---
+
+
+
+# 需求背景
+
+  目前云平台有**12**个业务项目, 大约**50万**行代码, 代码重复率根据工具检测, 估计有30%-40% (包含误报), 
+
+  由于业务项目繁杂, 代码重复率高, 后续无论是开发还是维护的成本在不断增高, 所以需要对现有项目进行分析整理, 
+
+  抽取出容易复用的代码, 以达到初步降低重复率的目的
+
+
+## 概述
+
+  12个业务项目技术栈: vue2 + webpack + js
+
+  @图1
+
+## 思路
+
+  之前已经对脚手架进行了统一, 所以目标在上层的业务代码里, 综合成本与收益, 最终决定先从utils工具函数入手
+
+  > 原因很简单, 公共函数都是纯js的, 一般不包含业务代码, 不会有一些奇葩的逻辑, 改动后验证非常方便(有ai帮助)
+  
+  1. 先找到有哪些重复的工具函数
+  2. 再分析其中值得抽取的函数, 如果比较多, 就需要分模块
+  3. 最后将其抽取到组件库里, 如果比较多, 就需要分模块导出
+
+## 前期准备
+
+  由于是分享文档, 所以就不说优化过程了, 直接说优化后的方案
+
+  ### 分析重复代码+jplag
+
+  一款源码分析工具, 可以帮我进行初步分析哪些代码重复的次数高, 毕竟重复的工具函数不一定都在utils里面
+
+  @图2
+
+  @图3
+
+  重复率确实比较高 (但还是有一些误报的)
+
+  @图4
+
+  这三个项目估计是互相复制的, 所以关联度最高
+
+  ### 删除无用代码+deadcode
+
+  在使用jplag初步分析后, 发现12个项目里存在大量的无用代码, 干扰到我分析了, 所以决定先删除无用代码
+
+  经过各种尝试, 最终决定使用 webpack-deadcode-plugin, 其它的各种工具只能通过js原本的语法进行分析
+
+  很难支持别名, 懒加载等语法, 之前提到过, 所有项目都是webpack打包的, 所以webpack的插件是最好的分析工具
+
+
+  @图5
+
+  用起来也很方便, 直接放到webpack的插件里就行
+
+  @图6
+
+  初步确定无用文件路径或者函数名后, 先不着急删除, 这里有三个办法进行交叉验证, 避免删出问题
+
+  1. 手动查找使用地方
+  2. 让ai帮忙分析
+  3. npm run build 进行验证
+
+  为什么不直接让ai分析, ai是概率模型, 有一定概率会失败, 作为重构, 以保险为主
+
+  为什么不直接使用npm run build进行验证, 导出的函数被删出后, 引入方不会报错, 只有运行时才会暴雷
+
+  @图7
+
+  pc web大约删出了1万行代码
+
+  @图8
+
+  admin web大约删除了2万行代码
+
+
+## 实际方案
+
+  ### 实际分析
+
+  删出掉大部分无用代码后, 经过分析, 各个项目纯js文件重复的代码大致可以分为如下几类
+
+  @图9
+
+  毫无疑问, 两个大项目相似的模块是可以抽取出来的, 那么不相似的呢? 
+
+  同样也需要抽取~~ 原因很简单, 重复次数超过了3次
+
+  ### ali-oss
+  
+  获取阿里云下载令牌的工具, 同时支持缓存令牌
+
+  ### constants
+
+  多个项目公用的常量, 目前只放了一个拼音的字典, 用于汉字转拼音, 各个项目基本都使用了
+
+  ### dateUtils
+
+  各个项目对日期进行格式化的工具函数, 非常不规范, 大部分都是自己实现的
+
+  ```JavaScript
+  // 日期时间选择里面的默认时间
+  export function dateTimeRange(date, num = 0, format = '') {
+    const endTime = (date ? dayjs(date) : dayjs()).hour(23).minute(59).second(59)
+    const startTime = (date ? dayjs(date) : dayjs())
+      .subtract(num, 'd')
+      .hour(0)
+      .minute(0)
+      .second(0)
+    if (!format) {
+      return [startTime.toDate(), endTime.toDate()]
+    } else {
+      return [startTime.format(format), endTime.format(format)]
+    }
+  }
+
+  export const formatDateByCustom = (dateObj, format = 'yyyy-mm-dd hh:mm:ss') => {
+    if (!dateObj) return
+    let year = dateObj.getFullYear()
+    let month = addZero(dateObj.getMonth() + 1)
+    let day = addZero(dateObj.getDate())
+    let hour = addZero(dateObj.getHours())
+    let minute = addZero(dateObj.getMinutes())
+    let second = addZero(dateObj.getSeconds())
+    switch (format) {
+      case 'yyyy-mm-dd hh:mm:ss':
+        return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+      case 'yyyy/mm/dd hh:mm:ss':
+        return `${year}/${month}/${day} ${hour}:${minute}:${second}`
+      case 'yyyy-mm-dd':
+        return `${year}-${month}-${day}`
+      case 'yyyy/mm/dd':
+        return `${year}/${month}/${day}`
+      case 'mm-dd':
+        return `${month}-${day}`
+      case 'yyyy年mm月dd日':
+        return `${year}年${month}月${day}日`
+      case 'hh:mm':
+        return `${hour}:${minute}`
+    }
+  }
+  ```
+
+  说实话有点难绷, 从最佳实践的角度来讲, 应该使用dayjs, 再不济也应该使用moment
+
+  不过此次重构的目的是提取公共函数, 故只是迁移, 不进行其它操作
+
+  > 还有几乎每个项目都写了一遍debounce/throttle的实现
+
+  ### desensitization
+
+  掩码处理, 包含:
+
+  1. **字符串掩码** desensitization
+  2. **邮箱掩码** encryptEmail, 
+  3. **手机号掩码** encryptMobile
+  4. **IP掩码** encryptIp
+  5. **姓名脱敏** encryptName
+
+  ### download下载
+
+  兼容多种数据类型的下载方法，支持 blob / base64 / url，兼容 IE
+
+  ```JavaScript
+  export const handleDownload = async (data, fileName, type) => {
+    const resolvedType = type || _detectDownloadType(data)
+
+    // URL 类型：先 fetch 成 Blob，再走 Blob 流程，确保跨域也能正常下载
+    if (resolvedType === DOWNLOAD_TYPE.URL) {
+      const blob = await httpGet(data, 'blob')
+      if (!blob) {
+        console.error('[handleDownload] 请求失败，无法下载：', data)
+        return
+      }
+      if (window.navigator.msSaveOrOpenBlob) {
+        navigator.msSaveBlob(blob, fileName)
+        return
+      }
+      const objectUrl = window.URL.createObjectURL(blob)
+      _triggerLinkDownload(objectUrl, fileName, true)
+      return
+    }
+
+    if (window.navigator.msSaveOrOpenBlob) {
+      // IE 浏览器仅支持 Blob，非 Blob 类型先转换
+      const blob =
+        resolvedType === DOWNLOAD_TYPE.BLOB
+          ? data
+          : new Blob([data], { type: 'application/octet-stream' })
+      navigator.msSaveBlob(blob, fileName)
+      return
+    }
+
+    if (resolvedType === DOWNLOAD_TYPE.BLOB) {
+      const objectUrl = window.URL.createObjectURL(data)
+      _triggerLinkDownload(objectUrl, fileName, true)
+    } else if (resolvedType === DOWNLOAD_TYPE.BASE64) {
+      // data 为完整 data URL，浏览器可直接识别，无需 revoke
+      _triggerLinkDownload(data, fileName, false)
+    }
+  }
+  ```
+
+  ### encrypt常用加密方法
+
+  提取各个项目常用的加密方法, 包含SHA512, AES, MD5
+
+  ### linkP2p
+
+  p2p跳转, 包含openNatloginWindow, openLocalWebWindow
+
+  ### pinyin
+
+  汉字转拼音的实现, 引用了上面的constants
+
+  ### service
+
+  每个项目都是用了axios, 也定义了相似但不同的拦截器, 以及有些项目支持续签
+
+  此次都进行了提取, 具体更改下文详细说明
+
+  ### utils
+
+  上面几个模块没有包含的公共函数, 在此模块进行实现
+
+  例如getNonce, fullscreen, exitfullscreen, getRandomUUID等等
+
+## 验证
+
+  1. 通过ai分析原文件以及公共函数的功能以及缺陷
+  2. 列举出影响的场景, 验证功能
+
+  
+
+
+## 使用方法
+
+  支持全量引入以及按需加载
+
+  ### 全量引入
+
+  `import utils from '@tvt/cloud-basic-widget/lib/tvt-common-functions'`
+
+  > 最好不要这么做
+
+  ### 按需引入
+
+  `import { getDownloadTokenWrapper } from '@tvt/cloud-basic-widget/lib/tvt-ali-oss'`
+
+## service实现以及使用
+
+ ### 设计思路
+
+ 分析各个项目的service后, 发现每个项目的大体框架都是相同的, 虽然细节各不相同
+
+ @图10
+
+ 不相同的细节既有效果相同的, 也有业务需要的, 因此在抽取时必须考虑到支持自定义效果, 以及后续的扩展性
+
+ 最后经过考虑, 决定使用插件的方式来实现上述的需求
+
+ @图11
+
+ 时序图
+
+ @图12
+
+ 续签流程, 删出了某些业务项目中无用的逻辑
+
+ @图13
+
+ 正常响应流程图
+
+ @图14
+
+ ### 使用方式
+
+ ```JavaScript
+const service = createService(
+  {
+    baseURL: process.env.NODE_ENV === 'development' ? '/h5/v1.0' : '',
+  },
+  { getErrorMessage, onErrorMessage }
+)
+  .useWith(withBasicRequest, { getBasic })
+
+  .useWith(withTokenGuard, {
+    invalidCodes: INVALID_TOKEN_CODES,
+    renewCodes: RENEW_TOKEN_CODES,
+    renewalFn: () => RenewToken({}),
+    renewUrl: RENEW_TOKEN_URL,
+    getBasic,
+    onRenew,
+    // 展示错误后等待 1000ms 再执行登出，保证用户能看到提示
+    onLogout: () => setTimeout(logoutFromAnywhere, 1000),
+  })
+
+  .useWith(withResponseNormalizer, {
+    // 保持与原有接口一致：成功时返回完整 { basic, data } 结构
+    normalResponseWrapper: (response) => response.data,
+    // Blob 请求成功时返回完整 response 对象（供业务层读取 headers 等信息）
+    blobResponseWrapper: (response) => response,
+  })
+
+  .useWith(withHttpErrorHandler, {
+    httpTimeoutErrorCode: HTTP_TIMEOUT_CODE,
+  })
+ ```
+
+ 如果没有特殊的定制需求, 即可使用默认的插件配置, 在加上业务项目的一些配置即可
+
+ 如果有特殊的配置, 且默认提供的插件无法满足功能, 业务项目可以自己编写插件, 对某一个流程的处理进行覆盖
+
+
+
+## 后续计划
+
+  补充单元测试, 固化当前公共函数的行为, 方便后续重构(TS/优化)
+
