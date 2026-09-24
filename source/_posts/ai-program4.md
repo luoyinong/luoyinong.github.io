@@ -120,7 +120,7 @@ flowchart TB
 
 核心协议定义在：
 
-`D:\newProject\TVTCloudBasicWeb\packages\CloudBasicWidget\src\widgets\apply\ai-agent-core\protocol.ts`
+`ai-agent-core\protocol.ts`
 
 它统一定义了：
 
